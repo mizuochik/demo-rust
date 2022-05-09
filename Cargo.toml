@@ -4,6 +4,9 @@ name = "hello"
 [[bin]]
 name = "data_types"
 
+[[bin]]
+name = "struct"
+
 [package]
 name = "demo-rust"
 version = "0.1.0"
