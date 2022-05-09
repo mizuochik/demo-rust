@@ -1,6 +1,9 @@
 [[bin]]
 name = "hello"
 
+[[bin]]
+name = "data_types"
+
 [package]
 name = "demo-rust"
 version = "0.1.0"
