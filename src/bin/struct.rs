@@ -2,10 +2,15 @@ struct User {
     name: String,
 }
 
+impl User {
+    fn hello(&self) {
+        println!("{}", self.name)
+    }
+}
+
 fn main() {
-    let mut u = User {
+    let u = User {
         name: String::from("foobar"),
     };
-    u.name = String::from("hogefuga");
-    println!("{}", u.name);
+    u.hello();
 }
