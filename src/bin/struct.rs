@@ -1,21 +1,20 @@
 struct User {
-    name: String,
+     name: String,
 }
 
 impl User {
     fn hello(&self) {
-        println!("{}", self.name)
+        println!("hello {}", self.name)
     }
 }
 
 fn main() {
-    let u = User {
+    let mut u = User {
         name: String::from("foobar"),
     };
-
-    u.hello();
-
     match u {
         User {name} => println!("{}", name)
     };
+    u.name = String::from("hogehoge");
+    u.hello();
 }
