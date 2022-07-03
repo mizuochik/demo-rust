@@ -13,7 +13,7 @@ impl Database for DatabaseImpl {
 }
 
 pub trait UseCase {
-    fn run(&self);
+    fn run(&self) -> String;
 }
 
 pub struct UseCaseImpl {
@@ -21,9 +21,8 @@ pub struct UseCaseImpl {
 }
 
 impl UseCase for UseCaseImpl {
-    fn run(&self) {
-        let msg = self.database.select();
-        println!("selected {}", msg);
+    fn run(&self) -> String {
+        self.database.select()
     }
 }
 
@@ -37,7 +36,7 @@ pub struct HandlerImpl {
 
 impl Handler for HandlerImpl {
     fn handle(&self) {
-        self.use_case.run();
+        println!("{}", self.use_case.run());
     }
 }
 
@@ -64,4 +63,27 @@ pub fn new_di() -> Di {
 
 fn main() {
     new_di().handler.handle();
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    struct DatabaseMock {
+        message: String,
+    }
+    impl Database for DatabaseMock {
+        fn select(&self) -> String {
+            self.message.clone()
+        }
+    }
+
+    #[test]
+    fn use_case_run() {
+        let db = Arc::new(DatabaseMock {
+            message: String::from("<mock>"),
+        });
+        let uc = UseCaseImpl { database: db };
+        assert_eq!("<mock>", uc.run());
+    }
 }
