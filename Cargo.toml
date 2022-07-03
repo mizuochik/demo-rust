@@ -1,20 +1,4 @@
-[[bin]]
-name = "hello"
-
-[[bin]]
-name = "data_types"
-
-[[bin]]
-name = "struct"
-
-[[bin]]
-name = "functions"
-
-[package]
-name = "demo-rust"
-version = "0.1.0"
-edition = "2021"
-
-# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
-
-[dependencies]
+[workspace]
+members = [
+    "demo-tokio"
+]
