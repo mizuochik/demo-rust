@@ -16,7 +16,7 @@ impl<T: DatabaseImpl> Database for T {
 }
 
 pub trait UseCase {
-    fn run(&self);
+    fn run(&self) -> String;
 }
 
 pub trait UseCaseDi {
@@ -27,8 +27,8 @@ pub trait UseCaseDi {
 pub trait UseCaseImpl: DatabaseDi {}
 
 impl<T: UseCaseImpl> UseCase for T {
-    fn run(&self) {
-        println!("selected {}", self.database().select());
+    fn run(&self) -> String {
+        self.database().select()
     }
 }
 
@@ -45,7 +45,7 @@ pub trait HandlerImpl: UseCaseDi {}
 
 impl<T: HandlerImpl> Handler for T {
     fn handle(&self) {
-        self.use_case().run();
+        println!("{}", self.use_case().run());
     }
 }
 
@@ -78,4 +78,39 @@ impl HandlerDi for Di {
 
 fn main() {
     new_di().handler().handle();
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    struct Mock {
+        message: String,
+    }
+    impl Database for Mock {
+        fn select(&self) -> String {
+            self.message.clone()
+        }
+    }
+    impl DatabaseDi for Mock {
+        type Database = Self;
+        fn database(&self) -> &Self::Database {
+            self
+        }
+    }
+    impl UseCaseImpl for Mock {}
+    impl UseCaseDi for Mock {
+        type UseCase = Self;
+        fn use_case(&self) -> &Self::UseCase {
+            self
+        }
+    }
+
+    #[test]
+    fn use_case_run() {
+        let m = Mock {
+            message: String::from("<mock>"),
+        };
+        assert_eq!(String::from("<mock>"), m.use_case().run());
+    }
 }
