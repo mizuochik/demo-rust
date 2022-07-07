@@ -12,21 +12,11 @@ async fn main() {
 }
 
 async fn shutdown() {
-    let interrupt = async {
-        unix::signal(unix::SignalKind::interrupt())
-            .unwrap()
-            .recv()
-            .await;
-    };
-    let terminate = async {
-        unix::signal(unix::SignalKind::terminate())
-            .unwrap()
-            .recv()
-            .await;
-    };
+    let mut interrupt = unix::signal(unix::SignalKind::interrupt()).unwrap();
+    let mut terminate = unix::signal(unix::SignalKind::terminate()).unwrap();
     tokio::select! {
-        _ = interrupt => {},
-        _ = terminate => {},
+        _ = interrupt.recv() => {},
+        _ = terminate.recv() => {},
     }
     println!("Signal received");
 }
