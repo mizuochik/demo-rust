@@ -7,7 +7,7 @@ RUN --mount=type=cache,target=/usr/local/cargo/registry \
     cargo build --release --bin webapi --target aarch64-unknown-linux-musl \
     && cp target/aarch64-unknown-linux-musl/release/webapi /tmp/demo-webapi
 
-FROM alpine
+FROM gcr.io/distroless/static
 WORKDIR /
 COPY --from=rust /tmp/demo-webapi .
 ENTRYPOINT [ "/demo-webapi" ]
