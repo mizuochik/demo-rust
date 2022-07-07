@@ -1,5 +1,5 @@
 use axum::response::Json;
-use serde_json::{Value, json};
+use serde_json::{json, Value};
 
 pub struct Handler {}
 
