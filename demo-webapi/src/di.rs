@@ -10,7 +10,7 @@ pub struct Di {
 pub fn new() -> Di {
     let h = Arc::new(handler::Handler {});
     Di {
-        handler: h.clone(),
+        handler: h,
     }
 }
 

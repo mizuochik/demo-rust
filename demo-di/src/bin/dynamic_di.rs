@@ -55,9 +55,9 @@ pub fn new_di() -> Di {
         use_case: uc.clone(),
     });
     Di {
-        database: db.clone(),
-        use_case: uc.clone(),
-        handler: h.clone(),
+        database: db,
+        use_case: uc,
+        handler: h,
     }
 }
 
