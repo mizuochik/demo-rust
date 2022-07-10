@@ -4,4 +4,5 @@ members = [
     "demo-di",
     "demo-tokio",
     "demo-webapi",
+    "demo-hyper",
 ]
