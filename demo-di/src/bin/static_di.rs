@@ -2,33 +2,28 @@ pub trait Database {
     fn select(&self) -> String;
 }
 
-pub trait DatabaseDi {
-    type Database: Database;
-    fn database(&self) -> &Self::Database;
-}
+pub struct DatabaseImpl {}
 
-pub trait DatabaseImpl {}
-
-impl<T: DatabaseImpl> Database for T {
+impl Database for DatabaseImpl {
     fn select(&self) -> String {
-        String::from("<selected>")
+        String::from("selected")
     }
 }
 
 pub trait UseCase {
-    fn run(&self) -> String;
+    fn run(&self);
 }
 
-pub trait UseCaseDi {
-    type UseCase: UseCase;
-    fn use_case(&self) -> &Self::UseCase;
+pub struct UseCaseImpl<D> {
+    pub database: D,
 }
 
-pub trait UseCaseImpl: DatabaseDi {}
-
-impl<T: UseCaseImpl> UseCase for T {
-    fn run(&self) -> String {
-        self.database().select()
+impl<D> UseCase for UseCaseImpl<D>
+where
+    D: Database,
+{
+    fn run(&self) {
+        println!("selected: {}", self.database.select());
     }
 }
 
@@ -36,81 +31,44 @@ pub trait Handler {
     fn handle(&self);
 }
 
-pub trait HandlerDi {
-    type Handler: Handler;
-    fn handler(&self) -> &Self::Handler;
+pub struct HandlerImpl<U> {
+    pub use_case: U,
 }
 
-pub trait HandlerImpl: UseCaseDi {}
-
-impl<T: HandlerImpl> Handler for T {
+impl<U> Handler for HandlerImpl<U>
+where
+    U: UseCase,
+{
     fn handle(&self) {
-        println!("{}", self.use_case().run());
+        self.use_case.run();
     }
 }
 
 pub struct Di {}
 
-pub fn new_di() -> Di {
-    Di {}
-}
-impl DatabaseImpl for Di {}
-impl UseCaseImpl for Di {}
-impl HandlerImpl for Di {}
-impl DatabaseDi for Di {
-    type Database = Self;
-    fn database(&self) -> &Self::Database {
-        self
+impl Di {
+    pub fn new() -> Self {
+        Di {}
     }
-}
-impl UseCaseDi for Di {
-    type UseCase = Self;
-    fn use_case(&self) -> &Self::UseCase {
-        self
+
+    pub fn database(&self) -> impl Database {
+        DatabaseImpl {}
     }
-}
-impl HandlerDi for Di {
-    type Handler = Self;
-    fn handler(&self) -> &Self::Handler {
-        self
+
+    pub fn use_case(&self) -> impl UseCase {
+        UseCaseImpl {
+            database: self.database(),
+        }
+    }
+
+    pub fn handler(&self) -> impl Handler {
+        HandlerImpl {
+            use_case: self.use_case(),
+        }
     }
 }
 
 fn main() {
-    new_di().handler().handle();
-}
-
-#[cfg(test)]
-mod tests {
-    use super::*;
-
-    struct Mock {
-        message: String,
-    }
-    impl Database for Mock {
-        fn select(&self) -> String {
-            self.message.clone()
-        }
-    }
-    impl DatabaseDi for Mock {
-        type Database = Self;
-        fn database(&self) -> &Self::Database {
-            self
-        }
-    }
-    impl UseCaseImpl for Mock {}
-    impl UseCaseDi for Mock {
-        type UseCase = Self;
-        fn use_case(&self) -> &Self::UseCase {
-            self
-        }
-    }
-
-    #[test]
-    fn use_case_run() {
-        let m = Mock {
-            message: String::from("<mock>"),
-        };
-        assert_eq!(String::from("<mock>"), m.use_case().run());
-    }
+    let d = Di {};
+    d.handler().handle();
 }
