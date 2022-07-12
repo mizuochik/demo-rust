@@ -1,4 +1,4 @@
-use std::{sync::Mutex, borrow::BorrowMut};
+use std::{borrow::BorrowMut, sync::Mutex};
 
 fn foo() {
     println!("hello");
@@ -20,9 +20,15 @@ async fn move_async() -> String {
     String::from("hello world")
 }
 
-#[tokio::main]
-async fn main() {
-    let _s = move_async();
+fn call<F: Fn()>(f: F) {
+    f();
+    f();
+}
 
-    move_async().await;
+fn main() {
+    let x = vec![100];
+    call(move || {
+        let y = &x;
+        println!("{:?}", y);
+    });
 }
