@@ -1,3 +1,6 @@
+use std::sync::Arc;
+
+#[cfg_attr(test, mockall::automock)]
 pub trait Database {
     fn select(&self) -> String;
 }
@@ -10,37 +13,34 @@ impl Database for DatabaseImpl {
     }
 }
 
+#[cfg_attr(test, mockall::automock)]
 pub trait UseCase {
-    fn run(&self);
+    fn run(&self) -> String;
 }
 
 pub struct UseCaseImpl<D> {
-    pub database: D,
+    pub database: Arc<D>,
 }
 
 impl<D> UseCase for UseCaseImpl<D>
 where
     D: Database,
 {
-    fn run(&self) {
-        println!("selected: {}", self.database.select());
+    fn run(&self) -> String {
+        self.database.select()
     }
 }
 
-pub trait Handler {
-    fn handle(&self);
+pub struct Handler<U> {
+    pub use_case: Arc<U>,
 }
 
-pub struct HandlerImpl<U> {
-    pub use_case: U,
-}
-
-impl<U> Handler for HandlerImpl<U>
+impl<U> Handler<U>
 where
     U: UseCase,
 {
     fn handle(&self) {
-        self.use_case.run();
+        println!("run: {}", self.use_case.run());
     }
 }
 
@@ -57,13 +57,13 @@ impl Di {
 
     pub fn use_case(&self) -> impl UseCase {
         UseCaseImpl {
-            database: self.database(),
+            database: Arc::new(self.database()),
         }
     }
 
-    pub fn handler(&self) -> impl Handler {
-        HandlerImpl {
-            use_case: self.use_case(),
+    pub fn handler(&self) -> Handler<impl UseCase> {
+        Handler {
+            use_case: Arc::new(self.use_case()),
         }
     }
 }
@@ -71,4 +71,20 @@ impl Di {
 fn main() {
     let d = Di {};
     d.handler().handle();
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn use_case() {
+        let db = Arc::new({
+            let mut db = MockDatabase::new();
+            db.expect_select().times(1).return_const("<mocked>");
+            db
+        });
+        let uc = UseCaseImpl { database: db };
+        assert_eq!("<mocked>", uc.run());
+    }
 }
