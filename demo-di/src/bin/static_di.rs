@@ -1,4 +1,4 @@
-use std::sync::Arc;
+use std::{cell::RefCell, ops::Deref, sync::Arc};
 
 #[cfg_attr(test, mockall::automock)]
 pub trait Database {
@@ -44,20 +44,31 @@ where
     }
 }
 
-pub struct Di {}
+pub struct Di {
+    database: RefCell<Option<Arc<DatabaseImpl>>>,
+}
 
 impl Di {
     pub fn new() -> Self {
-        Di {}
+        Di {
+            database: RefCell::new(None),
+        }
     }
 
-    pub fn database(&self) -> impl Database {
-        DatabaseImpl {}
+    pub fn database(&self) -> Arc<impl Database> {
+        let mut db = self.database.borrow_mut();
+        match db.deref() {
+            Some(db) => db.clone(),
+            None => {
+                let db = db.get_or_insert_with(|| Arc::new(DatabaseImpl {}));
+                db.clone()
+            }
+        }
     }
 
     pub fn use_case(&self) -> impl UseCase {
         UseCaseImpl {
-            database: Arc::new(self.database()),
+            database: self.database(),
         }
     }
 
@@ -69,7 +80,7 @@ impl Di {
 }
 
 fn main() {
-    let d = Di {};
+    let d = Di::new();
     d.handler().handle();
 }
 
